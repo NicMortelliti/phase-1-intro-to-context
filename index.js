@@ -1,23 +1,11 @@
 function createEmployeeRecord(array) {
-  const firstName = array[0];
-
-  const familyName = array[1];
-
-  const title = array[2];
-
-  const payPerHour = array[3];
-
-  const timeInEvents = [];
-
-  const timeOutEvents = [];
-
   return {
-    firstName: firstName,
-    familyName: familyName,
-    title: title,
-    payPerHour: payPerHour,
-    timeInEvents: timeInEvents,
-    timeOutEvents: timeOutEvents,
+    firstName: array[0],
+    familyName: array[1],
+    title: array[2],
+    payPerHour: array[3],
+    timeInEvents: [],
+    timeOutEvents: [],
   };
 }
 
@@ -37,9 +25,6 @@ function createTimeInEvent(recordObj, timeString) {
   const hour = parseInt(timeString.slice(-4));
   const date = timeString.slice(0, 10);
 
-  // Send recordObj to createEmployeeRecord for organizing
-  recordObj = createEmployeeRecord(recordObj);
-
   // Push the parsed time and date to the timeInEvents key
   recordObj.timeInEvents.push({ type: "TimeIn", hour: hour, date: date });
 
@@ -51,9 +36,6 @@ function createTimeOutEvent(recordObj, timeString) {
   const hour = parseInt(timeString.slice(-4));
   const date = timeString.slice(0, 10);
 
-  // Send recordObj to createEmployeeRecord for organizing
-  recordObj = createEmployeeRecord(recordObj);
-
   // Push the parsed time and date to the timeInEvents key
   recordObj.timeOutEvents.push({ type: "TimeOut", hour: hour, date: date });
 
@@ -61,35 +43,44 @@ function createTimeOutEvent(recordObj, timeString) {
 }
 
 function hoursWorkedOnDate(recordObj, dateString) {
-  /*
-  hoursWorkedOnDate
-  Argument(s)
-  An employee record Object
-  A date of the form "YYYY-MM-DD"
-  Returns
-  Hours worked, an Integer
-  Behavior
-  Given a date, find the number of hours elapsed between that date's timeInEvent and timeOutEvent
-  */
+  let hourIn = recordObj.timeInEvents.find(function (e) {
+    return e.date === dateString;
+  });
 
-  console.log(recordObj.timeInEvents.find(dateString);
-  //Object.keys(recordObj.timeInEvents[0]).find(key => recordObj[key] === dateString)
+  let hourOut = recordObj.timeOutEvents.find(function (e) {
+    return e.date === dateString;
+  });
 
-  //return hoursWorkedInt;
+  return (hourOut.hour - hourIn.hour) / 100;
 }
 
-/* TEST ----------------------------------------------------
-   --------------------------------------------------------- */
+function wagesEarnedOnDate(recordObj, dateString) {
+  // Retrieve # of hours from hoursWorkedOnDate.
+  const hours = hoursWorkedOnDate(recordObj, dateString);
 
-//console.log(createEmployeeRecord(["Julius", "Caesar", "General", 1000]));
+  // Multiply this number by the records payPerHour
+  // and return result.
+  return hours * recordObj.payPerHour;
+}
 
-let record = {
-  firstName: "Joe",
-  familyName: "Mo",
-  title: "Unemployed",
-  payPerHour: 20000,
-  timeInEvents: [{ timeIn: "0044-03-15 0900" }],
-  timeOutEvents: [{ timeOut: "0044-03-15 1100" }],
-};
+function allWagesFor(recordObj) {
+  let dailyWages = [];
 
-console.log(hoursWorkedOnDate(record, "0044-03-15"));
+  // Retrieve wage earned on each date.
+  recordObj.timeInEvents.forEach(e => {
+    dailyWages.push(wagesEarnedOnDate(recordObj, e.date));
+  });
+
+  // Return the sum of all of these daily wages as a number
+  return dailyWages.reduce((accumulator, current) => accumulator + current);
+}
+
+function calculatePayroll(allEmployeesArray) {
+  let allEmployeePay = [];
+
+  allEmployeesArray.forEach(e => {
+    allEmployeePay.push(allWagesFor(e));
+  });
+
+  return allEmployeePay.reduce((accumulator, current) => accumulator + current);
+}
